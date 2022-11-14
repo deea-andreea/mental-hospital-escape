@@ -1,9 +1,10 @@
 import numpy as np
 import random
+import time
+import threading
 
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
-import time
 
 hospital = np.random.randint(3, size=(20, 25))
 #
@@ -13,6 +14,9 @@ hospital[0][0] = 3
 hospital[19][0] = 3
 hospital[0][24] = 3
 hospital[19][24] = 3
+
+hospital[10][11] = 0
+hospital[10][13] = 0
 
 for i in range(1, 19):
     a = random.randint(3, 4)
@@ -51,35 +55,8 @@ for i in range(0, 20):
     print("\n")
 
 dpg.create_context()
-
 dpg.create_viewport(title="Escape")
 dpg.configure_viewport(0, x_pos=0, y_pos=0, width=1000, height=790)
-
-with dpg.window(label="Mental hospital", width=900, height=700):
-    with dpg.table(header_row=False) as table_id:
-
-        # use add_table_column to add columns to the table,
-        # table columns use child slot 0
-        for i in range(0, 26):
-            dpg.add_table_column()
-
-        for i in range(0, 20):
-            with dpg.table_row(height=30):
-                for j in range(0, 25):
-                    with dpg.table_cell():
-                        if hospital[i][j] == 0 or hospital[i][j] == 1:
-                            dpg.highlight_table_cell(table_id, i, j, [173, 216, 230])
-                        elif hospital[i][j] == 4:
-                            dpg.highlight_table_cell(table_id, i, j, [85, 187, 51])
-                            dpg.add_text("EXIT")
-                        else:
-                            dpg.highlight_table_cell(table_id, i, j, [66, 73, 82])
-
-
-dpg.setup_dearpygui()
-dpg.show_viewport()
-dpg.start_dearpygui()
-dpg.destroy_context()
 
 #
 # hospital = [[1, 0, 0, 1],
@@ -95,19 +72,70 @@ path = np.zeros((m + 1, n + 1), dtype=int)
 coord1 = [1, 0, -1, 0]
 coord2 = [0, 1, 0, -1]
 
+x = []
+y = []
+
 
 def show():
     for i in range(m):
         for j in range(n):
             print(path[i][j], end=' ')
-
         print('\n')
     print('\n')
+
+    for i in range(len(x)):
+        print(x[i] , "     ", y[i])
+    print('\n')
+
+    # def move():
+    #
+    #     dpg.highlight_table_cell(table_id, 2, 3, [200, 0, 11])
+    #     dpg.unhighlight_table_cell(table_id, 2, 3)
+
+    with dpg.window(label="Mental hospital", width=900, height=700):
+        with dpg.table(header_row=False) as table_id:
+
+            for i in range(0, 26):
+                dpg.add_table_column()
+
+            for i in range(0, 20):
+                with dpg.table_row(height=30):
+                    for j in range(0, 25):
+                        with dpg.table_cell():
+
+                            if hospital[i][j] == 0 or hospital[i][j] == 1:
+                                dpg.highlight_table_cell(table_id, i, j, [173, 216, 230])
+                            elif hospital[i][j] == 4:
+                                dpg.highlight_table_cell(table_id, i, j, [85, 187, 51])
+                                dpg.add_text("EXIT")
+                            elif hospital[i][j] == 3 or hospital[i][j] == 2:
+                                dpg.highlight_table_cell(table_id, i, j, [66, 73, 82])
+
+    dpg.highlight_table_cell(table_id, 10, 12, [100, 20, 400])
+    dpg.highlight_table_cell(table_id, 10, 11, [200, 0, 11])
+    dpg.highlight_table_cell(table_id, 10, 13, [298, 0, 29])
+
+    def move_prisoner():
+        dpg.highlight_table_cell(table_id, 10, 11, [0, 0, 0])
+        for i in range(len(x)):
+            dpg.highlight_table_cell(table_id, x[i], y[i], [200, 0, 11])
+            time.sleep(0.3)
+            dpg.highlight_table_cell(table_id, x[i], y[i], [173, 216, 230])
+            print('\n')
+        print('\n')
+
+    move_thread = threading.Thread(name="move", target=move_prisoner, args=(), daemon=True)
+    move_thread.start()
+
+    dpg.setup_dearpygui()
+    dpg.show_viewport()
+    dpg.start_dearpygui()
+    dpg.destroy_context()
 
 
 def valid(ii, jj):
     if ii < 0 or ii > m - 1 or jj < 0 or jj > n - 1: return False
-    if hospital[ii][jj] == 1: return False
+    if hospital[ii][jj] == 2 or hospital[ii][jj] == 3: return False
     if path[ii][jj] != 0: return False
     return True
 
@@ -117,14 +145,19 @@ def backtracking(i, j, pas):
         ii = i + coord1[k]
         jj = j + coord2[k]
 
+        x.append(ii)
+        y.append(jj)
+
         if valid(ii, jj) is True:
             path[ii][jj] = pas + 1
             if hospital[ii][jj] == 4:
                 show()
-                return 0
             else:
                 backtracking(ii, jj, pas + 1)
             path[ii][jj] = 0
+
+        x.pop(len(x) - 1)
+        y.pop(len(y) - 1)
 
 
 for i in range(m):
@@ -133,13 +166,12 @@ for i in range(m):
     print('\n')
 
 print('\n')
-path[12][10] = 1
-hospital[12][10] = 0
+path[10][11] = 1
+hospital[10][11] = 0
 
 for i in range(m):
     for j in range(n):
         print(path[i][j], end=' ')
     print('\n')
 cnt = 0
-backtracking(12, 10, 1)
-
+backtracking(10, 11, 1)
