@@ -5,6 +5,9 @@ import time
 import threading
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
+
+
+
 hospital = np.random.randint(3, size=(20, 25))
 
 cnt = 0
@@ -106,6 +109,7 @@ dpg.highlight_table_cell(table_id, 10, 11, [56, 48, 67])
 dpg.highlight_table_cell(table_id, 10, 13, [298, 0, 104])
 
 
+
 def show():
     for i in range(m):
         for j in range(n):
@@ -114,20 +118,7 @@ def show():
     print('\n')
     
     
-
-    def move_prisoner():
-        dpg.highlight_table_cell(table_id, 10, 11, [0, 0, 0])
-        for i in range(len(x)):
-            dpg.highlight_table_cell(table_id, x[i], y[i], [200, 0, 11])
-            time.sleep(0.3)
-            dpg.highlight_table_cell(table_id, x[i], y[i], [173, 216, 230])
-            print('\n')
-        print('\n')
-        
-
-
-    move_thread = threading.Thread(name="move", target=move_prisoner, args=(), daemon=True)
-    move_thread.start()
+    
 
 minim = 1000
 counter = 0
@@ -155,33 +146,38 @@ def backtracking(i, j, pas, steps):
         steps = steps + 1
        
         if valid(ii, jj, steps)==1 :
+            """
             if hospital[ii][jj]==10 :
                 #dpg.highlight_table_cell(table_id, x[ii], y[ii], [0, 200, 5])
                 #dpg.add_text("You've been catched")
                 print("caught")
+                """
+
 
             path[ii][jj] = pas + 1
             if hospital[ii][jj] == 4:
                 if steps < minim:
                     minim = steps
 
-                    if counter==0:
-                        print(counter)
-                        
-                        for i in range(len(x)):
-                            x1.append(x[i])
-                            y1.append(y[i])
-                            show()
+                    #if counter==0:
+                        #print(counter)
+                        #for i in range(len(x)):
+                            #x1.append(x[i])
+                            #y1.append(y[i])
+                            #show()
 
+                    for i in range(len(x)):
+                        x1.append(x[i])
+                        y1.append(y[i])
                     counter = 1
                     #print(steps)
 
             backtracking(ii, jj, pas + 1, steps)
             path[ii][jj] = 0
 
-        x.pop(len(x) - 1)
-        y.pop(len(y) - 1)
-        steps = steps - 1
+    x.pop(len(x) - 1)
+    y.pop(len(y) - 1)
+    steps = steps - 1
 
 
 for i in range(m):
@@ -199,10 +195,10 @@ cnt = 0
 backtracking(10, 11, 1, 0)
 
 
-
 def move_prisoner():
     dpg.highlight_table_cell(table_id, 10, 11, [0, 0, 0])
     for i in range(len(x1)):
+        print(x1[i], "       ", y1[i])
         dpg.highlight_table_cell(table_id, x1[i], y1[i], [200, 0, 11])
         time.sleep(0.6)
         dpg.highlight_table_cell(table_id, x1[i], y1[i], [173, 216, 230])
@@ -213,6 +209,7 @@ def move_prisoner():
 
 move_thread = threading.Thread(name="move", target=move_prisoner, args=(), daemon=True)
 move_thread.start()
+
 
 dpg.setup_dearpygui()
 dpg.show_viewport()
