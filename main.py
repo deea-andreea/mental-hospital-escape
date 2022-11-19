@@ -5,7 +5,7 @@ import random
 import time
 import threading
 import dearpygui.dearpygui as dpg
-import dearpygui.demo as demo
+from Patient import Patient
 
 hospital = np.random.randint(3, size=(20, 25))
 
@@ -176,10 +176,53 @@ for i in range(len(x)):
 
 i = 10
 j = 12
+last_x = 10
+last_y = 12
+
+illnesses = ["Schizofrenie", "Parkinson", "Tulburare bipolara", "Alzheimer"]
+patient_you = Patient("Andreea", 17, 27, "Alzheimer")
+counter = 0
+
+
+def schizo():
+    global counter
+    if counter % 5 == 0 and random.randrange(0, 2) == 1:
+        print("Stop")
+        with dpg.window(label="Delete Files", modal=True, show=True, tag="modal_id", no_title_bar=True):
+            dpg.add_text("Ai un episod schizofrenic!")
+            time.sleep(3)
+            dpg.delete_item("modal_id")
+
+def alz():
+    global i, j, last_x, last_y
+    aux_x = i
+    aux_y = j
+    if random.randrange(0, 3) != 0:
+        dpg.highlight_table_cell(table_id, i, j, [173, 216, 230])
+        i = last_x
+        j = last_y
+        dpg.highlight_table_cell(table_id, i, j, [100, 21, 199])
+    last_x = aux_x
+    last_y = aux_y
+
 
 
 def move_player(sender, app_data):
-    global i, j
+    global i, j, counter, last_x, last_y
+    counter = counter + 1
+    if patient_you.get_illness() == "Schizofrenie":
+        schizo()
+    if patient_you.get_illness() == "Parkinson":
+        time.sleep(0.7)
+    if (counter % 6 == 0 or counter % 6 - 1 == 0) and patient_you.get_illness() == "Tulburare bipolara":
+        if app_data == 39:
+            app_data = app_data - 1
+        else:
+            app_data = app_data + 1
+
+    if counter % 3 == 0 and patient_you.get_illness() == "Alzheimer":
+        alz()
+
     if (app_data == 37 or app_data == 65) and hospital[i][j - 1] != 2 and hospital[i][j - 1] != 3:
         # VEST
         dpg.highlight_table_cell(table_id, i, j, [173, 216, 230])
@@ -198,7 +241,7 @@ def move_player(sender, app_data):
         j = j + 1
         dpg.highlight_table_cell(table_id, i, j, [100, 21, 199])
 
-    if (app_data == 40 or app_data == 83) and hospital[i+1][j] != 2 and hospital[i+1][j] != 3:
+    if (app_data == 40 or app_data == 83) and hospital[i + 1][j] != 2 and hospital[i + 1][j] != 3:
         # SUD
         dpg.highlight_table_cell(table_id, i, j, [173, 216, 230])
         i = i + 1
@@ -210,27 +253,21 @@ def move_player(sender, app_data):
 
 
 def move_prisoner1():
-    # dpg.highlight_table_cell(table_id, 10, 11, [0, 0, 0])
+    dpg.highlight_table_cell(table_id, 10, 11, [173, 216, 230])
 
     for i in range(len(x1)):
         dpg.highlight_table_cell(table_id, x1[i], y1[i], [200, 0, 11])
-        time.sleep(2)
+        time.sleep(1.2)
         dpg.highlight_table_cell(table_id, x1[i], y1[i], [173, 216, 230])
-
-        print('\n')
-    print('\n')
 
 
 def move_prisoner2():
-    # dpg.highlight_table_cell(table_id, 10, 13, [0, 0, 0])
+    dpg.highlight_table_cell(table_id, 10, 13, [173, 216, 230])
 
     for i in range(len(x2)):
-        print(x2, "     ")
         dpg.highlight_table_cell(table_id, x2[i], y2[i], [250, 0, 11])
-        time.sleep(0.7)
+        time.sleep(0.6)
         dpg.highlight_table_cell(table_id, x2[i], y2[i], [173, 216, 230])
-
-        print('\n')
 
 
 move_thread1 = threading.Thread(name="move", target=move_prisoner1, args=(), daemon=True)
@@ -245,4 +282,3 @@ dpg.setup_dearpygui()
 dpg.show_viewport()
 dpg.start_dearpygui()
 dpg.destroy_context()
-
