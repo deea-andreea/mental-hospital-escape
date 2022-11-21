@@ -9,6 +9,7 @@ from Patient import Patient
 
 hospital = np.random.randint(3, size=(20, 25))
 
+print(time.perf_counter())
 cnt = 0
 hospital[0][0] = 3
 hospital[19][0] = 3
@@ -50,8 +51,12 @@ for i in range(0, 20):
         print(hospital[i][j], end=" ")
     print("\n")
 
+
+
+
 dpg.create_context()
 dpg.create_viewport(title="Escape")
+
 #
 # dpg.window(title="Lobby")
 # dpg.add_button(label="Start", callback=open_main_win)
@@ -74,7 +79,7 @@ y2 = []
 
 path2 = np.zeros((m + 1, n + 1), dtype=int)
 
-with dpg.window(label="Mental hospital", width=900, height=700):
+with dpg.window(label="Mental hospital", tag="hospital", width=900, height=700):
     with dpg.table(header_row=False) as table_id:
 
         for i in range(0, 26):
@@ -150,8 +155,8 @@ def backtracking(i, j, pas, steps):
                         y1[i] = y[i]
 
                     for i in range(len(x), len(x1)):
-                        x1[i] = 25
-                        y1[i] = 20
+                        x1[i] = 0
+                        y1[i] = 0
 
                     print(steps)
 
@@ -171,27 +176,116 @@ for i in range(m):
     print('\n')
 cnt = 0
 backtracking(10, 11, 1, 0)
+name = input("Enter name")
+age = input("Enter age")
+weight = int(input("Enter weight"))
+height = int(input("Enter height"))/100
+illness = input("Enter illness")
+
+patient_you = Patient(name, age, weight/height*height, illness, 0)
 for i in range(len(x)):
     print(x[i], end=' ')
 
+time1 = time.perf_counter()
+print("time1", time1)
 i = 10
 j = 12
 last_x = 10
 last_y = 12
 
 illnesses = ["Schizofrenie", "Parkinson", "Tulburare bipolara", "Alzheimer"]
-patient_you = Patient("Andreea", 17, 27, "Alzheimer")
+
 counter = 0
+
+
+def guard(patient):
+    with dpg.window(label="Gardianul Greedy", width=900, height=700):
+        friends = random.randint(5, 10)
+        dpg.add_text(
+            "La iesirea din spital ai dat de Gardianul Greedy si de " + patient.get_name() + " care a evadat inaintea ta si a a adus cu el inca " +
+            str(friends) + "prieteni", tag="text1")
+        time.sleep(0.5)
+        dpg.add_separator()
+        dpg.add_text("Gardianul Greedy va lasa sa evadeze doar " + str(friends - 2) +
+                     " prizonieri, evaluandu-va in parte si va alcatui o lista.", tag="text2")
+        time.sleep(3)
+        dpg.delete_item("text1")
+        dpg.delete_item("text2")
+        dpg.add_loading_indicator()
+        dpg.add_text("Gardianul se gandeste...")
+        if greedy(friends, patient) is True:
+            escaped()
+        else:
+            returned()
+
+
+def greedy(friends, patient):
+    friends_arr = [patient_you, patient]
+    for i in range(friends):
+        friends_arr.append(
+            Patient("friend" + str(i), random.randint(20, 50), random.randint(17, 30),
+                    illnesses[random.randrange(0, 4)],
+                    patient.get_time()))
+
+    print("mivi3jnvitnvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
+    for i in range(friends):
+        print(friends_arr[i].get_illness())
+
+    print("mivi3jnvitnvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
+
+    mark = {}
+
+    for i in range(len(friends_arr) - 1):
+        for j in range(i, len(friends_arr)):
+            if 18.5 < friends_arr[j].get_bmi() < friends_arr[i].get_bmi():
+                aux = friends_arr[i]
+                friends_arr[i] = friends_arr[j]
+                friends_arr[j] = aux
+
+    for i in range(len(friends_arr)):
+        mark[friends_arr[i]] = i * 3 - illnesses.index(friends_arr[i].get_illness())
+        if friends_arr[i].get_age() > 40:
+            mark[friends_arr[i]] = mark[friends_arr[i]] + 2
+
+    friends_sorted = sorted(mark.items(), key=lambda x: x[1])
+    for i in range(len(friends_sorted)):
+        print(friends_sorted[i])
+
+    keys = list(mark.keys())
+    for i in range(friends-2):
+        print(keys[i].get_name())
+        if keys[i].get_name() == patient_you.get_name():
+            return True
+    return False
+
+
+def escaped():
+    with dpg.window(label="Felicitari!", width=900, height=700):
+        dpg.add_text("Ai evadat din spital!")
+
+def returned():
+    with dpg.window(label="Esti un fraier!", width=900, height=700):
+        dpg.add_text("Meriti sa te intorci la soarta ta mizerabila:))...Better luck next time")
 
 
 def schizo():
     global counter
     if counter % 5 == 0 and random.randrange(0, 2) == 1:
-        print("Stop")
-        with dpg.window(label="Delete Files", modal=True, show=True, tag="modal_id", no_title_bar=True):
+
+        with dpg.window(label="Warning!", modal=True, show=True, tag="modal_id", no_title_bar=True, height=300,
+                        width=300):
+            width, height, channels, data = dpg.load_image("schizo.png")
+            with dpg.texture_registry(show=False, tag="registry"):
+                dpg.add_static_texture(width=width, height=height, default_value=data, tag="texture_tag")
+
             dpg.add_text("Ai un episod schizofrenic!")
+            dpg.add_image("texture_tag", tag="image")
             time.sleep(3)
             dpg.delete_item("modal_id")
+            dpg.delete_item("image")
+            dpg.delete_item("texture_tag")
+            dpg.delete_item("registry")
+
 
 def alz():
     global i, j, last_x, last_y
@@ -205,6 +299,28 @@ def alz():
     last_x = aux_x
     last_y = aux_y
 
+
+def funct():
+    time2 = time.perf_counter()
+    print("time2", time2)
+    patient1 = Patient("Vasile", 29, 30, illnesses[random.randrange(0, 4)], 1.2 * len(np.trim_zeros(x1)))
+    print("patient1", patient1.get_time())
+
+    patient2 = Patient("Constantin", 40, 35, illnesses[random.randrange(0, 4)], 0.6 * len(x2))
+    print("patient2", patient2.get_time())
+
+    print(time2 - time1)
+
+    if time2 - time1 < patient1.get_time() and time2 - time1 < patient2.get_time():
+        print("da")
+        escaped()
+    elif patient1.get_time() < time2 - time1 < patient2.get_time():
+        print("bcernuvn")
+        guard(patient2)
+    elif patient2.get_time() < time2 - time1 < patient1.get_time():
+        guard(patient1)
+    else:
+        returned()
 
 
 def move_player(sender, app_data):
@@ -248,23 +364,37 @@ def move_player(sender, app_data):
         dpg.highlight_table_cell(table_id, i, j, [100, 21, 199])
 
     if hospital[i][j] == 4:
-        with dpg.window(label="Congrats!"):
-            dpg.add_text("You escaped!")
+        time.sleep(2)
+        dpg.delete_item("hospital")
+        funct()
+
+
+steps1 = 0
+steps2 = 0
+
+print(x1)
 
 
 def move_prisoner1():
     dpg.highlight_table_cell(table_id, 10, 11, [173, 216, 230])
 
+    global steps1
     for i in range(len(x1)):
-        dpg.highlight_table_cell(table_id, x1[i], y1[i], [200, 0, 11])
-        time.sleep(1.2)
-        dpg.highlight_table_cell(table_id, x1[i], y1[i], [173, 216, 230])
+        steps1 = steps1 + 1
+        if x1[i] == 0 and y1[i] == 0:
+            break
+        else:
+            dpg.highlight_table_cell(table_id, x1[i], y1[i], [200, 0, 11])
+            time.sleep(1.2)
+            dpg.highlight_table_cell(table_id, x1[i], y1[i], [173, 216, 230])
 
 
 def move_prisoner2():
     dpg.highlight_table_cell(table_id, 10, 13, [173, 216, 230])
 
+    global steps2
     for i in range(len(x2)):
+        steps2 = steps2 + 1
         dpg.highlight_table_cell(table_id, x2[i], y2[i], [250, 0, 11])
         time.sleep(0.6)
         dpg.highlight_table_cell(table_id, x2[i], y2[i], [173, 216, 230])
